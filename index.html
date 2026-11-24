@@ -8,284 +8,112 @@
 <script src="/socket.io/socket.io.js"></script>
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;
-  background:radial-gradient(circle,#30251b,#100d0a 75%);
-  color:#f4e5bd;
-  font-family:Georgia,serif;
-}
-header{
-  text-align:center;
-  padding:13px 5px;
-  color:#e8c878;
-  letter-spacing:3px;
-  text-shadow:0 2px 8px #000;
-}
+body{margin:0;background:radial-gradient(circle,#30251b,#100d0a 75%);color:#f4e5bd;font-family:Georgia,serif}
+header{text-align:center;padding:13px 5px;color:#e8c878;letter-spacing:3px;text-shadow:0 2px 8px #000}
 h1{font-size:25px;margin:4px}
 .subtitle{font-size:11px;letter-spacing:4px}
 #status{text-align:center;color:#b8d8c0;font:13px Arial;margin:5px}
-.lobby{
-  max-width:480px;
-  margin:12px auto;
-  padding:16px;
-  background:#211a13;
-  border:1px solid #b9954c;
-  border-radius:13px;
-  box-shadow:0 8px 25px #000;
-}
-input{
-  width:100%;
-  padding:13px;
-  margin:6px 0;
-  border-radius:8px;
-  border:1px solid #b38a43;
-  background:#111a16;
-  color:white;
-  font-size:16px;
-}
-button{
-  cursor:pointer;
-  border:1px solid #f1d58c;
-  border-radius:8px;
-  padding:12px 15px;
-  background:linear-gradient(135deg,#f0d48b,#a8792f);
-  color:#241807;
-  font-weight:bold;
-  font-size:14px;
-  box-shadow:0 3px 8px #0008;
-}
+.lobby{max-width:480px;margin:12px auto;padding:16px;background:#211a13;border:1px solid #b9954c;border-radius:13px;box-shadow:0 8px 25px #000}
+input{width:100%;padding:13px;margin:6px 0;border-radius:8px;border:1px solid #b38a43;background:#111a16;color:white;font-size:16px}
+button{cursor:pointer;border:1px solid #f1d58c;border-radius:8px;padding:12px 15px;background:linear-gradient(135deg,#f0d48b,#a8792f);color:#241807;font-weight:bold;font-size:14px;box-shadow:0 3px 8px #0008}
 button:active{transform:scale(.97)}
-#roomInfo{
-  text-align:center;
-  font:14px Arial;
-  color:#f2d99b;
-  margin:12px;
-}
-#table{
-  display:none;
-  position:relative;
-  margin:12px auto;
-  width:calc(100% - 14px);
-  max-width:900px;
-  height:min(72vh,590px);
-  min-height:430px;
-  border:13px solid #51331e;
-  border-radius:48%;
-  background:
-    radial-gradient(ellipse at center,#19845a 0%,#08603e 58%,#03432c 100%);
-  box-shadow:
-    0 0 0 3px #c6a04e,
-    0 0 0 7px #352015,
-    0 16px 35px #000,
-    inset 0 0 35px #002b19;
-}
-#table:before{
-  content:"";
-  position:absolute;
-  inset:12px;
-  border:2px solid #c7a65d;
-  border-radius:48%;
-  pointer-events:none;
-}
-#table:after{
-  content:"♠  ROYAL CARD CLUB  ♥";
-  position:absolute;
-  left:50%;
-  top:20%;
-  transform:translateX(-50%);
-  color:#d9c080;
-  opacity:.22;
-  font-size:clamp(12px,2vw,19px);
-  letter-spacing:3px;
-  white-space:nowrap;
-  pointer-events:none;
-}
-.seat{
-  position:absolute;
-  z-index:2;
-  min-width:105px;
-  text-align:center;
-  background:linear-gradient(145deg,#211b14ed,#090d0bed);
-  border:1px solid #c19b4c;
-  border-radius:12px;
-  padding:8px 10px;
-  font:12px Arial;
-  color:#f6e8c7;
-  box-shadow:0 4px 10px #0008;
-}
-.seat strong{
-  display:block;
-  color:#f1d38c;
-  margin-bottom:5px;
-  font-size:13px;
-}
-.seat.active{
-  outline:3px solid #f4d47d;
-  box-shadow:0 0 18px #e5c46b;
-}
+button:disabled{opacity:.45}
+#roomInfo{text-align:center;font:14px Arial;color:#f2d99b;margin:12px}
+#table{display:none;position:relative;margin:12px auto;width:calc(100% - 14px);max-width:900px;height:min(72vh,590px);min-height:430px;border:13px solid #51331e;border-radius:48%;background:radial-gradient(ellipse at center,#19845a 0%,#08603e 58%,#03432c 100%);box-shadow:0 0 0 3px #c6a04e,0 0 0 7px #352015,0 16px 35px #000,inset 0 0 35px #002b19}
+#table:before{content:"";position:absolute;inset:12px;border:2px solid #c7a65d;border-radius:48%;pointer-events:none}
+#table:after{content:"♠  ROYAL CARD CLUB  ♥";position:absolute;left:50%;top:20%;transform:translateX(-50%);color:#d9c080;opacity:.22;font-size:clamp(12px,2vw,19px);letter-spacing:3px;white-space:nowrap;pointer-events:none}
+.seat{position:absolute;z-index:2;min-width:105px;text-align:center;background:linear-gradient(145deg,#211b14ed,#090d0bed);border:1px solid #c19b4c;border-radius:12px;padding:8px 10px;font:12px Arial;color:#f6e8c7;box-shadow:0 4px 10px #0008}
+.seat strong{display:block;color:#f1d38c;margin-bottom:5px;font-size:13px}
+.seat.active{outline:3px solid #f4d47d;box-shadow:0 0 18px #e5c46b}
 #seat0{bottom:12px;left:50%;transform:translateX(-50%)}
 #seat1{left:12px;top:50%;transform:translateY(-50%)}
 #seat2{top:12px;left:50%;transform:translateX(-50%)}
 #seat3{right:12px;top:50%;transform:translateY(-50%)}
-#middle{
-  position:absolute;
-  z-index:1;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  width:65%;
-  text-align:center;
-}
-#tableCards{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:5px;
-  min-height:65px;
-  margin-top:8px;
-}
-.tablecard{
-  background:linear-gradient(145deg,#fff,#e6e0d1);
-  color:#17251d;
-  border:1px solid #c6b78f;
-  border-radius:6px;
-  padding:10px 7px;
-  font:bold 18px Arial;
-  box-shadow:0 4px 9px #001;
-  animation:cardIn .22s ease-out;
-}
+#middle{position:absolute;z-index:1;top:50%;left:50%;transform:translate(-50%,-50%);width:65%;text-align:center}
+#tableCards{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:5px;min-height:65px;margin-top:8px}
+.tablecard{background:linear-gradient(145deg,#fff,#e6e0d1);color:#17251d;border:1px solid #c6b78f;border-radius:6px;padding:10px 7px;font:bold 18px Arial;box-shadow:0 4px 9px #001;animation:cardIn .22s ease-out}
 .red{color:#c52222!important}
-@keyframes cardIn{
-  from{opacity:0;transform:translateY(-18px) scale(.8)}
-  to{opacity:1;transform:translateY(0) scale(1)}
-}
-#message{
-  font:13px Arial;
-  color:#ffe7a5;
-  margin:10px 0;
-  min-height:30px;
-  line-height:1.5;
-}
-#handArea{
-  display:none;
-  max-width:900px;
-  margin:15px auto;
-  padding:10px 5px 20px;
-  text-align:center;
-}
-.handTitle{
-  color:#e8c878;
-  font-size:14px;
-  letter-spacing:2px;
-  margin-bottom:14px;
-}
-#hand{
-  display:flex;
-  justify-content:center;
-  align-items:flex-end;
-  flex-wrap:wrap;
-  gap:5px;
-  min-height:75px;
-}
-.card{
-  background:linear-gradient(145deg,#fff,#e9e4d8);
-  color:#17251d;
-  border:2px solid #c9b88c;
-  border-radius:8px;
-  width:43px;
-  height:66px;
-  padding:4px 2px;
-  font:bold 15px Arial;
-  box-shadow:0 4px 8px #0009;
-  transition:transform .15s;
-}
-.card.selected{
-  transform:translateY(-13px);
-  border:3px solid #e4b84d;
-  background:#fff5d8;
-}
-.actions{
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  flex-wrap:wrap;
-  margin:14px auto;
-}
+@keyframes cardIn{from{opacity:0;transform:translateY(-18px) scale(.8)}to{opacity:1;transform:translateY(0) scale(1)}}
+#message{font:13px Arial;color:#ffe7a5;margin:10px 0;min-height:30px;line-height:1.5}
+#handArea{display:none;max-width:900px;margin:15px auto;padding:10px 5px 20px;text-align:center}
+.handTitle{color:#e8c878;font-size:14px;letter-spacing:2px;margin-bottom:14px}
+#hand{display:flex;justify-content:center;align-items:flex-end;flex-wrap:wrap;gap:5px;min-height:75px}
+.card{background:linear-gradient(145deg,#fff,#e9e4d8);color:#17251d;border:2px solid #c9b88c;border-radius:8px;width:43px;height:66px;padding:4px 2px;font:bold 15px Arial;box-shadow:0 4px 8px #0009;transition:transform .15s}
+.card.selected{transform:translateY(-13px);border:3px solid #e4b84d;background:#fff5d8}
+.actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:14px auto}
 .actions button{min-width:130px}
-#startArea{display:none}
+#startArea,#nextArea{display:none}
+#startArea button,#nextArea button{min-width:200px}
+#nextArea button{background:linear-gradient(135deg,#f6e5a5,#c28c32);font-size:16px}
+#resultArea{display:none;max-width:480px;margin:18px auto;padding:18px;background:linear-gradient(145deg,#292016,#100d09);border:2px solid #c6a04e;border-radius:14px;box-shadow:0 8px 25px #000;text-align:center}
+#resultArea h2{margin:0 0 14px;color:#f3d58b;letter-spacing:2px}
+.resultRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;margin:7px 0;border:1px solid #806638;border-radius:8px;background:#17150f;font:14px Arial}
+.resultRow:first-of-type{background:linear-gradient(100deg,#57431c,#241b0d);border-color:#e5c46b;color:#ffe5a0}
+.resultRank{font-weight:bold;min-width:65px;text-align:left}
+.resultName{overflow-wrap:anywhere;text-align:right}
 #startArea button{min-width:200px}
-.smallNote{
-  text-align:center;
-  color:#a99b7e;
-  font:11px Arial;
-  padding:10px;
-}
+.smallNote{text-align:center;color:#a99b7e;font:11px Arial;padding:10px}
 @media(max-width:500px){
-  #table{
-    height:440px;
-    min-height:440px;
-    border-width:9px;
-  }
-  .seat{
-    min-width:78px;
-    font-size:11px;
-    padding:6px;
-  }
-  .seat strong{font-size:11px}
-  #seat1{left:3px}
-  #seat3{right:3px}
-  #middle{width:62%}
-  .tablecard{font-size:15px;padding:8px 5px}
-  .card{width:36px;height:58px;font-size:13px}
+#table{height:440px;min-height:440px;border-width:9px}
+.seat{min-width:78px;font-size:11px;padding:6px}
+.seat strong{font-size:11px}
+#seat1{left:3px}#seat3{right:3px}
+#middle{width:62%}
+.tablecard{font-size:15px;padding:8px 5px}
+.card{width:36px;height:58px;font-size:13px}
 }
 </style>
 </head>
 <body>
-
 <header>
-  <h1>♠ ROYAL TIẾN LÊN ♥</h1>
-  <div class="subtitle">PRIVATE CARD CLUB</div>
+<h1>♠ ROYAL TIẾN LÊN ♥</h1>
+<div class="subtitle">PRIVATE CARD CLUB</div>
 </header>
 
 <p id="status">Đang kết nối máy chủ...</p>
 
 <div class="lobby" id="lobby">
-  <h3>THAM GIA BÀN CHƠI</h3>
-  <input id="name" maxlength="16" placeholder="Tên người chơi">
-  <button onclick="createRoom()">TẠO PHÒNG MỚI</button>
-  <input id="roomInput" maxlength="6" placeholder="Nhập mã phòng 6 ký tự">
-  <button onclick="joinRoom()">THAM GIA PHÒNG</button>
+<h3>THAM GIA BÀN CHƠI</h3>
+<input id="name" maxlength="16" placeholder="Tên người chơi">
+<button onclick="createRoom()">TẠO PHÒNG MỚI</button>
+<input id="roomInput" maxlength="6" placeholder="Nhập mã phòng 6 ký tự">
+<button onclick="joinRoom()">THAM GIA PHÒNG</button>
 </div>
 
 <p id="roomInfo"></p>
 
 <div id="table">
-  <div class="seat" id="seat0">Bạn</div>
-  <div class="seat" id="seat1">Đang chờ</div>
-  <div class="seat" id="seat2">Đang chờ</div>
-  <div class="seat" id="seat3">Đang chờ</div>
-
-  <div id="middle">
-    <div style="color:#f1d38c;letter-spacing:3px;font-size:13px">
-      ROYAL TABLE
-    </div>
-    <div id="tableCards"></div>
-    <div id="message">Đang chờ người chơi...</div>
-  </div>
+<div class="seat" id="seat0">Bạn</div>
+<div class="seat" id="seat1">Đang chờ</div>
+<div class="seat" id="seat2">Đang chờ</div>
+<div class="seat" id="seat3">Đang chờ</div>
+<div id="middle">
+<div style="color:#f1d38c;letter-spacing:3px;font-size:13px">ROYAL TABLE</div>
+<div id="tableCards"></div>
+<div id="message">Đang chờ người chơi...</div>
+</div>
 </div>
 
 <div class="actions" id="startArea">
-  <button onclick="startGame()">♠ BẮT ĐẦU TRẬN ♥</button>
+<button onclick="startGame()">♠ BẮT ĐẦU TRẬN ♥</button>
+</div>
+
+<div id="resultArea">
+<h2>🏆 KẾT QUẢ VÁN ĐẤU</h2>
+<div id="resultList"></div>
+</div>
+
+<div class="actions" id="nextArea">
+<button onclick="nextRound()">✦ VÁN TIẾP THEO ✦</button>
 </div>
 
 <div id="handArea">
-  <div class="handTitle">BÀI CỦA BẠN — CHẠM ĐỂ CHỌN</div>
-  <div id="hand"></div>
-  <div class="actions">
-    <button onclick="playCards()">ĐÁNH BÀI</button>
-    <button onclick="passTurn()">BỎ LƯỢT</button>
-  </div>
+<div class="handTitle">BÀI CỦA BẠN — CHẠM ĐỂ CHỌN</div>
+<div id="hand"></div>
+<div class="actions">
+<button onclick="playCards()">ĐÁNH BÀI</button>
+<button onclick="passTurn()">BỎ LƯỢT</button>
+</div>
 </div>
 
 <p class="smallNote">ROYAL CARD CLUB · Chơi giải trí, không cá cược</p>
@@ -298,6 +126,81 @@ let myId = "";
 let myHand = [];
 let selected = [];
 let roomState = null;
+let previousPlay = "";
+let audioContext = null;
+
+function unlockAudio() {
+  try {
+    const Audio = window.AudioContext || window.webkitAudioContext;
+    if (!Audio) return;
+    if (!audioContext) audioContext = new Audio();
+    if (audioContext.state === "suspended") audioContext.resume();
+  } catch (e) {}
+}
+
+function noiseBurst(duration, volume, frequency, filterType) {
+  if (!audioContext) return;
+
+  const ctx = audioContext;
+  const length = Math.floor(ctx.sampleRate * duration);
+  const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+
+  for (let i = 0; i < length; i++) {
+    data[i] = (Math.random() * 2 - 1) * (1 - i / length);
+  }
+
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = filterType || "highpass";
+  filter.frequency.value = frequency || 500;
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(volume, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+
+  source.start();
+  source.stop(ctx.currentTime + duration);
+}
+
+function cardSound() {
+  unlockAudio();
+  if (!audioContext) return;
+
+  noiseBurst(0.12, 0.22, 900, "highpass");
+  setTimeout(() => noiseBurst(0.07, 0.12, 1600, "highpass"), 35);
+
+  const ctx = audioContext;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = "triangle";
+  osc.frequency.setValueAtTime(170, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(65, ctx.currentTime + 0.09);
+
+  gain.gain.setValueAtTime(0.15, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start();
+  osc.stop(ctx.currentTime + 0.11);
+}
+
+function shuffleSound() {
+  unlockAudio();
+  if (!audioContext) return;
+
+  noiseBurst(0.32, 0.13, 700, "bandpass");
+  setTimeout(() => noiseBurst(0.28, 0.13, 1000, "bandpass"), 160);
+  setTimeout(() => noiseBurst(0.22, 0.10, 1400, "bandpass"), 320);
+}
 
 socket.on("connect", () => {
   myId = socket.id;
@@ -313,12 +216,14 @@ socket.on("roomCreated", data => {
   roomCode = data.code;
   document.getElementById("roomInfo").textContent =
     "MÃ PHÒNG CỦA BẠN: " + roomCode;
+  document.getElementById("lobby").style.display = "none";
 });
 
 socket.on("joinedRoom", data => {
   roomCode = data.code;
   document.getElementById("roomInfo").textContent =
     "ĐÃ VÀO PHÒNG: " + roomCode;
+  document.getElementById("lobby").style.display = "none";
 });
 
 socket.on("myHand", hand => {
@@ -328,48 +233,58 @@ socket.on("myHand", hand => {
 });
 
 socket.on("roomState", state => {
+  const oldWinner = roomState && roomState.winner;
+  const oldStarted = roomState && roomState.started;
+  const newPlay = (state.lastCards || []).join("|");
+
+  if (state.started && !state.winner) {
+    if ((!oldStarted || oldWinner) && state.players.length) {
+      shuffleSound();
+    } else if (newPlay && newPlay !== previousPlay) {
+      cardSound();
+    }
+  }
+
+  previousPlay = newPlay;
   roomState = state;
   renderState();
 });
 
-socket.on("errorMessage", message => {
-  alert(message);
-});
+socket.on("errorMessage", message => alert(message));
 
 function getName() {
   return document.getElementById("name").value.trim() || "Người chơi";
 }
 
 function createRoom() {
-  if (!socket.connected) {
-    alert("Máy chủ chưa kết nối!");
-    return;
-  }
+  unlockAudio();
+
+  if (!socket.connected) return alert("Máy chủ chưa kết nối!");
+
   socket.emit("createRoom", {name: getName()});
 }
 
 function joinRoom() {
-  if (!socket.connected) {
-    alert("Máy chủ chưa kết nối!");
-    return;
-  }
+  unlockAudio();
+
+  if (!socket.connected) return alert("Máy chủ chưa kết nối!");
 
   const code = document.getElementById("roomInput")
     .value.trim().toUpperCase();
 
-  if (code.length !== 6) {
-    alert("Mã phòng phải có 6 ký tự!");
-    return;
-  }
+  if (code.length !== 6) return alert("Mã phòng phải có 6 ký tự!");
 
-  socket.emit("joinRoom", {
-    name: getName(),
-    code: code
-  });
+  socket.emit("joinRoom", {name: getName(), code});
 }
 
 function startGame() {
+  unlockAudio();
   socket.emit("startGame", {code: roomCode});
+}
+
+function nextRound() {
+  unlockAudio();
+  socket.emit("nextRound", {code: roomCode});
 }
 
 function escapeText(value) {
@@ -382,6 +297,37 @@ function escapeText(value) {
   }[char]));
 }
 
+function isRed(card) {
+  return card.endsWith("♥") || card.endsWith("♦");
+}
+
+function renderResults() {
+  const area = document.getElementById("resultArea");
+  const list = document.getElementById("resultList");
+
+  if (!roomState || !roomState.winner) {
+    area.style.display = "none";
+    list.innerHTML = "";
+    return;
+  }
+
+  area.style.display = "block";
+
+  const resultText = String(roomState.winner);
+  const entries = resultText.split("|").map(item => item.trim());
+
+  list.innerHTML = entries.map(entry => {
+    const parts = entry.split(":");
+    const rank = parts.shift() || "";
+    const name = parts.join(":").trim();
+
+    return '<div class="resultRow">' +
+      '<span class="resultRank">' + escapeText(rank) + '</span>' +
+      '<span class="resultName">' + escapeText(name) + '</span>' +
+      '</div>';
+  }).join("");
+}
+
 function renderState() {
   if (!roomState) return;
 
@@ -389,12 +335,17 @@ function renderState() {
 
   document.getElementById("startArea").style.display =
     !roomState.started &&
+    !roomState.winner &&
     roomState.hostId === myId &&
     roomState.players.length >= 2
       ? "flex" : "none";
 
+  document.getElementById("nextArea").style.display =
+    roomState.winner && roomState.hostId === myId
+      ? "flex" : "none";
+
   document.getElementById("handArea").style.display =
-    roomState.started ? "block" : "none";
+    roomState.started && !roomState.winner ? "block" : "none";
 
   const myIndex = roomState.players.findIndex(p => p.id === myId);
 
@@ -412,10 +363,8 @@ function renderState() {
         player.count + " lá bài" +
         (player.id === myId ? " · BẠN" : "");
 
-      seat.classList.toggle(
-        "active",
-        player.id === roomState.currentPlayerId
-      );
+      seat.classList.toggle("active",
+        player.id === roomState.currentPlayerId);
     } else {
       seat.textContent = "Đang chờ";
       seat.classList.remove("active");
@@ -424,7 +373,7 @@ function renderState() {
 
   document.getElementById("message").textContent =
     roomState.winner
-      ? "🏆 " + roomState.winner + " đã chiến thắng!"
+      ? "Ván đấu đã kết thúc! Xem bảng xếp hạng bên dưới."
       : roomState.message || "";
 
   const played = roomState.lastCards || [];
@@ -436,11 +385,8 @@ function renderState() {
       '">' + escapeText(card) + "</div>"
     ).join("");
 
+  renderResults();
   renderHand();
-}
-
-function isRed(card) {
-  return card.endsWith("♥") || card.endsWith("♦");
 }
 
 function renderHand() {
@@ -449,6 +395,7 @@ function renderHand() {
 
   myHand.forEach(card => {
     const button = document.createElement("button");
+
     button.className =
       "card " +
       (isRed(card) ? "red" : "") +
@@ -457,11 +404,14 @@ function renderHand() {
     button.textContent = card;
 
     button.onclick = () => {
+      unlockAudio();
+
       if (selected.includes(card)) {
         selected = selected.filter(c => c !== card);
       } else {
         selected.push(card);
       }
+
       renderHand();
     };
 
@@ -469,39 +419,9 @@ function renderHand() {
   });
 }
 
-function playSound() {
-  try {
-    const AudioContextClass =
-      window.AudioContext || window.webkitAudioContext;
-
-    const context = new AudioContextClass();
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-
-    oscillator.type = "sawtooth";
-    oscillator.frequency.setValueAtTime(750, context.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(
-      120, context.currentTime + 0.16
-    );
-
-    gain.gain.setValueAtTime(0.10, context.currentTime);
-    gain.gain.exponentialRampToValueAtTime(
-      0.001, context.currentTime + 0.18
-    );
-
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-
-    oscillator.start();
-    oscillator.stop(context.currentTime + 0.19);
-
-    setTimeout(() => context.close(), 300);
-  } catch (error) {
-    // Trình duyệt có thể chặn âm thanh.
-  }
-}
-
 function playCards() {
+  unlockAudio();
+
   if (!roomState || roomState.currentPlayerId !== myId) {
     alert("Chưa đến lượt bạn!");
     return;
@@ -512,8 +432,6 @@ function playCards() {
     return;
   }
 
-  playSound();
-
   socket.emit("playCards", {
     code: roomCode,
     cards: selected.slice()
@@ -521,6 +439,8 @@ function playCards() {
 }
 
 function passTurn() {
+  unlockAudio();
+
   if (!roomState || roomState.currentPlayerId !== myId) {
     alert("Chưa đến lượt bạn!");
     return;
@@ -529,6 +449,5 @@ function passTurn() {
   socket.emit("passTurn", {code: roomCode});
 }
 </script>
-
 </body>
 </html>
