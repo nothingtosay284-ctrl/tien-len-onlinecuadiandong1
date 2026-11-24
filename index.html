@@ -1,102 +1,131 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
- <script src="/socket.io/socket.io.js"></script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tiến Lên Online</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#101827;color:white;font-family:Arial}
-main{max-width:600px;margin:auto;padding:22px}
-h1{text-align:center;color:#55e6a5}
-.card{background:#1e2b40;padding:20px;border-radius:16px;margin:18px 0}
-input{width:100%;padding:14px;margin:8px 0;border:0;border-radius:8px;font-size:16px}
-button{width:100%;padding:14px;margin:7px 0;border:0;border-radius:9px;background:#20c987;font-weight:bold;font-size:16px}
-.note{text-align:center;color:#b7c5d8}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tiến Lên Online</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #101827; color: white; font-family: Arial; }
+    main { max-width: 600px; margin: auto; padding: 22px; }
+    h1 { text-align: center; color: #55e6a5; }
+    .card { background: #1e2b40; padding: 20px; border-radius: 16px; margin: 18px 0; }
+    input { width: 100%; padding: 14px; margin: 8px 0; border: 0; border-radius: 8px; font-size: 16px; }
+    button { width: 100%; padding: 14px; margin: 7px 0; border: 0; border-radius: 9px; background: #20c987; font-weight: bold; font-size: 16px; }
+    .note { text-align: center; color: #b7c5d8; }
+    #hand { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+    .playing-card { background: white; color: #172033; padding: 12px 9px; border-radius: 8px; font-weight: bold; }
+  </style>
 </head>
 <body>
 <main>
-<h1>♠ TIẾN LÊN ONLINE ♥</h1>
-<p class="note">Chơi cùng bạn bè trên nhiều điện thoại</p>
+  <h1>♠ TIẾN LÊN ONLINE ♥</h1>
+  <p class="note">Chơi cùng bạn bè trên nhiều điện thoại</p>
 
-<div class="card">
-<h3>👤 Tên người chơi</h3>
-<input id="name" placeholder="Nhập tên của bạn">
+  <div class="card">
+    <h3>👤 Tên người chơi</h3>
+    <input id="name" placeholder="Nhập tên của bạn">
 
-<h3>🏠 Tạo phòng</h3>
-<button onclick="createRoom()">Tạo phòng mới</button>
+    <h3>🏠 Tạo phòng</h3>
+    <button onclick="createRoom()">Tạo phòng mới</button>
 
-<h3>🔑 Tham gia phòng</h3>
-<input id="room" placeholder="Nhập mã phòng 6 ký tự">
-<button onclick="joinRoom()">Tham gia</button>
-</div>
+    <h3>🔑 Tham gia phòng</h3>
+    <input id="room" placeholder="Nhập mã phòng 6 ký tự">
+    <button onclick="joinRoom()">Tham gia</button>
+  </div>
 
-<div class="card">
-<h3>🎮 Phòng chơi</h3>
-<p id="status">Chưa kết nối máy chủ</p>
-<p id="code">Mã phòng: Chưa có</p>
-<div id="players">Chưa có người chơi</div>
-</div>
+  <div class="card">
+    <h3>🎮 Phòng chơi</h3>
+    <p id="status">Đang kết nối...</p>
+    <p id="code">Mã phòng: Chưa có</p>
+    <div id="players">Chưa có người chơi</div>
 
-<p class="note">2–4 người chơi | Không cá cược | Không tiền thật</p>
+    <button id="startBtn" onclick="startGame()" style="display:none">
+      BẮT ĐẦU TRẬN
+    </button>
+
+    <p id="gameMessage"></p>
+    <div id="hand"></div>
+  </div>
+
+  <p class="note">2–4 người chơi | Không cá cược | Không tiền thật</p>
 </main>
 
 <script>
 const socket = io();
+let roomCode = "";
 
 socket.on("connect", function() {
-    document.getElementById("status").textContent = "Đã kết nối máy chủ!";
+  document.getElementById("status").textContent = "Đã kết nối máy chủ!";
 });
 
 socket.on("connect_error", function() {
-    document.getElementById("status").textContent = "Không kết nối được máy chủ!";
+  document.getElementById("status").textContent = "Không kết nối được máy chủ!";
 });
 
 socket.on("roomCreated", function(data) {
-    document.getElementById("code").textContent =
-        "Mã phòng: " + data.code;
+  roomCode = data.code;
+  document.getElementById("code").textContent = "Mã phòng: " + roomCode;
 });
 
 socket.on("joinedRoom", function(data) {
-    document.getElementById("code").textContent =
-        "Đã vào phòng: " + data.code;
+  roomCode = data.code;
+  document.getElementById("code").textContent = "Mã phòng: " + roomCode;
 });
 
 socket.on("roomUpdate", function(data) {
-    document.getElementById("players").textContent =
-        "Người chơi: " +
-        data.players.map(function(player) {
-            return player.name;
-        }).join(", ");
+  document.getElementById("players").textContent =
+    "Người chơi: " + data.players.map(function(player) {
+      return player.name;
+    }).join(", ");
+
+  document.getElementById("startBtn").style.display =
+    data.isHost && data.players.length >= 2 ? "block" : "none";
+});
+
+socket.on("gameStarted", function(data) {
+  document.getElementById("gameMessage").textContent =
+    "🎉 Trận đấu bắt đầu! Bài của bạn:";
+
+  const hand = document.getElementById("hand");
+  hand.innerHTML = "";
+
+  data.hand.forEach(function(card) {
+    const item = document.createElement("div");
+    item.className = "playing-card";
+    item.textContent = card;
+    hand.appendChild(item);
+  });
 });
 
 socket.on("errorMessage", function(message) {
-    alert(message);
+  alert(message);
 });
 
 function createRoom() {
-    var name = document.getElementById("name").value.trim();
-
-    socket.emit("createRoom", {
-        name: name || "Người chơi"
-    });
+  const name = document.getElementById("name").value.trim();
+  socket.emit("createRoom", { name: name || "Người chơi" });
 }
 
 function joinRoom() {
-    var name = document.getElementById("name").value.trim();
-    var code = document.getElementById("room").value.trim().toUpperCase();
+  const name = document.getElementById("name").value.trim();
+  const code = document.getElementById("room").value.trim().toUpperCase();
 
-    if (code.length !== 6) {
-        alert("Mã phòng phải có 6 ký tự!");
-        return;
-    }
+  if (code.length !== 6) {
+    alert("Mã phòng phải có 6 ký tự!");
+    return;
+  }
 
-    socket.emit("joinRoom", {
-        name: name || "Người chơi",
-        code: code
-    });
+  socket.emit("joinRoom", {
+    name: name || "Người chơi",
+    code: code
+  });
+}
+
+function startGame() {
+  socket.emit("startGame", { code: roomCode });
 }
 </script>
 </body>
