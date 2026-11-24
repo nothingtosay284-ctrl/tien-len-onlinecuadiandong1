@@ -2,116 +2,360 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tiến Lên Online</title>
-  <script src="/socket.io/socket.io.js"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; background: #101827; color: white; font-family: Arial; }
-    main { max-width: 600px; margin: auto; padding: 22px; }
-    h1 { text-align: center; color: #55e6a5; }
-    .card { background: #1e2b40; padding: 20px; border-radius: 16px; margin: 18px 0; }
-    input { width: 100%; padding: 14px; margin: 8px 0; border: 0; border-radius: 8px; font-size: 16px; }
-    button { width: 100%; padding: 14px; margin: 7px 0; border: 0; border-radius: 9px; background: #20c987; font-weight: bold; font-size: 16px; }
-    .note { text-align: center; color: #b7c5d8; }
-    #hand { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
-    .playing-card { background: white; color: #172033; padding: 12px 9px; border-radius: 8px; font-weight: bold; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Royal Tiến Lên</title>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:radial-gradient(circle,#30251b,#100d0a 75%);
+  color:#f4e5bd;
+  font-family:Georgia,serif;
+}
+header{
+  text-align:center;
+  padding:13px 5px;
+  color:#e8c878;
+  letter-spacing:3px;
+  text-shadow:0 2px 8px #000;
+}
+h1{font-size:25px;margin:4px}
+.subtitle{font-size:11px;letter-spacing:4px}
+#status{text-align:center;color:#b8d8c0;font:13px Arial;margin:5px}
+.lobby{
+  max-width:480px;
+  margin:12px auto;
+  padding:16px;
+  background:#211a13;
+  border:1px solid #b9954c;
+  border-radius:13px;
+  box-shadow:0 8px 25px #000;
+}
+input{
+  width:100%;
+  padding:13px;
+  margin:6px 0;
+  border-radius:8px;
+  border:1px solid #b38a43;
+  background:#111a16;
+  color:white;
+  font-size:16px;
+}
+button{
+  cursor:pointer;
+  border:1px solid #f1d58c;
+  border-radius:8px;
+  padding:12px 15px;
+  background:linear-gradient(135deg,#f0d48b,#a8792f);
+  color:#241807;
+  font-weight:bold;
+  font-size:14px;
+  box-shadow:0 3px 8px #0008;
+}
+button:active{transform:scale(.97)}
+#roomInfo{
+  text-align:center;
+  font:14px Arial;
+  color:#f2d99b;
+  margin:12px;
+}
+#table{
+  display:none;
+  position:relative;
+  margin:12px auto;
+  width:calc(100% - 14px);
+  max-width:900px;
+  height:min(72vh,590px);
+  min-height:430px;
+  border:13px solid #51331e;
+  border-radius:48%;
+  background:
+    radial-gradient(ellipse at center,#19845a 0%,#08603e 58%,#03432c 100%);
+  box-shadow:
+    0 0 0 3px #c6a04e,
+    0 0 0 7px #352015,
+    0 16px 35px #000,
+    inset 0 0 35px #002b19;
+}
+#table:before{
+  content:"";
+  position:absolute;
+  inset:12px;
+  border:2px solid #c7a65d;
+  border-radius:48%;
+  pointer-events:none;
+}
+#table:after{
+  content:"♠  ROYAL CARD CLUB  ♥";
+  position:absolute;
+  left:50%;
+  top:20%;
+  transform:translateX(-50%);
+  color:#d9c080;
+  opacity:.22;
+  font-size:clamp(12px,2vw,19px);
+  letter-spacing:3px;
+  white-space:nowrap;
+  pointer-events:none;
+}
+.seat{
+  position:absolute;
+  z-index:2;
+  min-width:105px;
+  text-align:center;
+  background:linear-gradient(145deg,#211b14ed,#090d0bed);
+  border:1px solid #c19b4c;
+  border-radius:12px;
+  padding:8px 10px;
+  font:12px Arial;
+  color:#f6e8c7;
+  box-shadow:0 4px 10px #0008;
+}
+.seat strong{
+  display:block;
+  color:#f1d38c;
+  margin-bottom:5px;
+  font-size:13px;
+}
+.seat.active{
+  outline:3px solid #f4d47d;
+  box-shadow:0 0 18px #e5c46b;
+}
+#seat0{bottom:12px;left:50%;transform:translateX(-50%)}
+#seat1{left:12px;top:50%;transform:translateY(-50%)}
+#seat2{top:12px;left:50%;transform:translateX(-50%)}
+#seat3{right:12px;top:50%;transform:translateY(-50%)}
+#middle{
+  position:absolute;
+  z-index:1;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:65%;
+  text-align:center;
+}
+#tableCards{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:5px;
+  min-height:65px;
+  margin-top:8px;
+}
+.tablecard{
+  background:linear-gradient(145deg,#fff,#e6e0d1);
+  color:#17251d;
+  border:1px solid #c6b78f;
+  border-radius:6px;
+  padding:10px 7px;
+  font:bold 18px Arial;
+  box-shadow:0 4px 9px #001;
+  animation:cardIn .22s ease-out;
+}
+.red{color:#c52222!important}
+@keyframes cardIn{
+  from{opacity:0;transform:translateY(-18px) scale(.8)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+#message{
+  font:13px Arial;
+  color:#ffe7a5;
+  margin:10px 0;
+  min-height:30px;
+  line-height:1.5;
+}
+#handArea{
+  display:none;
+  max-width:900px;
+  margin:15px auto;
+  padding:10px 5px 20px;
+  text-align:center;
+}
+.handTitle{
+  color:#e8c878;
+  font-size:14px;
+  letter-spacing:2px;
+  margin-bottom:14px;
+}
+#hand{
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;
+  flex-wrap:wrap;
+  gap:5px;
+  min-height:75px;
+}
+.card{
+  background:linear-gradient(145deg,#fff,#e9e4d8);
+  color:#17251d;
+  border:2px solid #c9b88c;
+  border-radius:8px;
+  width:43px;
+  height:66px;
+  padding:4px 2px;
+  font:bold 15px Arial;
+  box-shadow:0 4px 8px #0009;
+  transition:transform .15s;
+}
+.card.selected{
+  transform:translateY(-13px);
+  border:3px solid #e4b84d;
+  background:#fff5d8;
+}
+.actions{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin:14px auto;
+}
+.actions button{min-width:130px}
+#startArea{display:none}
+#startArea button{min-width:200px}
+.smallNote{
+  text-align:center;
+  color:#a99b7e;
+  font:11px Arial;
+  padding:10px;
+}
+@media(max-width:500px){
+  #table{
+    height:440px;
+    min-height:440px;
+    border-width:9px;
+  }
+  .seat{
+    min-width:78px;
+    font-size:11px;
+    padding:6px;
+  }
+  .seat strong{font-size:11px}
+  #seat1{left:3px}
+  #seat3{right:3px}
+  #middle{width:62%}
+  .tablecard{font-size:15px;padding:8px 5px}
+  .card{width:36px;height:58px;font-size:13px}
+}
+</style>
 </head>
 <body>
-<main>
-  <h1>♠ TIẾN LÊN ONLINE ♥</h1>
-  <p class="note">Chơi cùng bạn bè trên nhiều điện thoại</p>
 
-  <div class="card">
-    <h3>👤 Tên người chơi</h3>
-    <input id="name" placeholder="Nhập tên của bạn">
+<header>
+  <h1>♠ ROYAL TIẾN LÊN ♥</h1>
+  <div class="subtitle">PRIVATE CARD CLUB</div>
+</header>
 
-    <h3>🏠 Tạo phòng</h3>
-    <button onclick="createRoom()">Tạo phòng mới</button>
+<p id="status">Đang kết nối máy chủ...</p>
 
-    <h3>🔑 Tham gia phòng</h3>
-    <input id="room" placeholder="Nhập mã phòng 6 ký tự">
-    <button onclick="joinRoom()">Tham gia</button>
+<div class="lobby" id="lobby">
+  <h3>THAM GIA BÀN CHƠI</h3>
+  <input id="name" maxlength="16" placeholder="Tên người chơi">
+  <button onclick="createRoom()">TẠO PHÒNG MỚI</button>
+  <input id="roomInput" maxlength="6" placeholder="Nhập mã phòng 6 ký tự">
+  <button onclick="joinRoom()">THAM GIA PHÒNG</button>
+</div>
+
+<p id="roomInfo"></p>
+
+<div id="table">
+  <div class="seat" id="seat0">Bạn</div>
+  <div class="seat" id="seat1">Đang chờ</div>
+  <div class="seat" id="seat2">Đang chờ</div>
+  <div class="seat" id="seat3">Đang chờ</div>
+
+  <div id="middle">
+    <div style="color:#f1d38c;letter-spacing:3px;font-size:13px">
+      ROYAL TABLE
+    </div>
+    <div id="tableCards"></div>
+    <div id="message">Đang chờ người chơi...</div>
   </div>
+</div>
 
-  <div class="card">
-    <h3>🎮 Phòng chơi</h3>
-    <p id="status">Đang kết nối...</p>
-    <p id="code">Mã phòng: Chưa có</p>
-    <div id="players">Chưa có người chơi</div>
+<div class="actions" id="startArea">
+  <button onclick="startGame()">♠ BẮT ĐẦU TRẬN ♥</button>
+</div>
 
-    <button id="startBtn" onclick="startGame()" style="display:none">
-      BẮT ĐẦU TRẬN
-    </button>
-
-    <p id="gameMessage"></p>
-    <div id="hand"></div>
+<div id="handArea">
+  <div class="handTitle">BÀI CỦA BẠN — CHẠM ĐỂ CHỌN</div>
+  <div id="hand"></div>
+  <div class="actions">
+    <button onclick="playCards()">ĐÁNH BÀI</button>
+    <button onclick="passTurn()">BỎ LƯỢT</button>
   </div>
+</div>
 
-  <p class="note">2–4 người chơi | Không cá cược | Không tiền thật</p>
-</main>
+<p class="smallNote">ROYAL CARD CLUB · Chơi giải trí, không cá cược</p>
 
 <script>
 const socket = io();
-let roomCode = "";
 
-socket.on("connect", function() {
+let roomCode = "";
+let myId = "";
+let myHand = [];
+let selected = [];
+let roomState = null;
+
+socket.on("connect", () => {
+  myId = socket.id;
   document.getElementById("status").textContent = "Đã kết nối máy chủ!";
 });
 
-socket.on("connect_error", function() {
-  document.getElementById("status").textContent = "Không kết nối được máy chủ!";
+socket.on("connect_error", () => {
+  document.getElementById("status").textContent =
+    "Không kết nối được máy chủ. Hãy tải lại trang.";
 });
 
-socket.on("roomCreated", function(data) {
+socket.on("roomCreated", data => {
   roomCode = data.code;
-  document.getElementById("code").textContent = "Mã phòng: " + roomCode;
+  document.getElementById("roomInfo").textContent =
+    "MÃ PHÒNG CỦA BẠN: " + roomCode;
 });
 
-socket.on("joinedRoom", function(data) {
+socket.on("joinedRoom", data => {
   roomCode = data.code;
-  document.getElementById("code").textContent = "Mã phòng: " + roomCode;
+  document.getElementById("roomInfo").textContent =
+    "ĐÃ VÀO PHÒNG: " + roomCode;
 });
 
-socket.on("roomUpdate", function(data) {
-  document.getElementById("players").textContent =
-    "Người chơi: " + data.players.map(function(player) {
-      return player.name;
-    }).join(", ");
-
-  document.getElementById("startBtn").style.display =
-    data.isHost && data.players.length >= 2 ? "block" : "none";
+socket.on("myHand", hand => {
+  myHand = hand || [];
+  selected = [];
+  renderHand();
 });
 
-socket.on("gameStarted", function(data) {
-  document.getElementById("gameMessage").textContent =
-    "🎉 Trận đấu bắt đầu! Bài của bạn:";
-
-  const hand = document.getElementById("hand");
-  hand.innerHTML = "";
-
-  data.hand.forEach(function(card) {
-    const item = document.createElement("div");
-    item.className = "playing-card";
-    item.textContent = card;
-    hand.appendChild(item);
-  });
+socket.on("roomState", state => {
+  roomState = state;
+  renderState();
 });
 
-socket.on("errorMessage", function(message) {
+socket.on("errorMessage", message => {
   alert(message);
 });
 
+function getName() {
+  return document.getElementById("name").value.trim() || "Người chơi";
+}
+
 function createRoom() {
-  const name = document.getElementById("name").value.trim();
-  socket.emit("createRoom", { name: name || "Người chơi" });
+  if (!socket.connected) {
+    alert("Máy chủ chưa kết nối!");
+    return;
+  }
+  socket.emit("createRoom", {name: getName()});
 }
 
 function joinRoom() {
-  const name = document.getElementById("name").value.trim();
-  const code = document.getElementById("room").value.trim().toUpperCase();
+  if (!socket.connected) {
+    alert("Máy chủ chưa kết nối!");
+    return;
+  }
+
+  const code = document.getElementById("roomInput")
+    .value.trim().toUpperCase();
 
   if (code.length !== 6) {
     alert("Mã phòng phải có 6 ký tự!");
@@ -119,14 +363,172 @@ function joinRoom() {
   }
 
   socket.emit("joinRoom", {
-    name: name || "Người chơi",
+    name: getName(),
     code: code
   });
 }
 
 function startGame() {
-  socket.emit("startGame", { code: roomCode });
+  socket.emit("startGame", {code: roomCode});
+}
+
+function escapeText(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  }[char]));
+}
+
+function renderState() {
+  if (!roomState) return;
+
+  document.getElementById("table").style.display = "block";
+
+  document.getElementById("startArea").style.display =
+    !roomState.started &&
+    roomState.hostId === myId &&
+    roomState.players.length >= 2
+      ? "flex" : "none";
+
+  document.getElementById("handArea").style.display =
+    roomState.started ? "block" : "none";
+
+  const myIndex = roomState.players.findIndex(p => p.id === myId);
+
+  for (let i = 0; i < 4; i++) {
+    const seat = document.getElementById("seat" + i);
+
+    const player = myIndex < 0 ? null :
+      roomState.players.find((p, index) =>
+        (index - myIndex + 4) % 4 === i
+      );
+
+    if (player) {
+      seat.innerHTML =
+        "<strong>" + escapeText(player.name) + "</strong>" +
+        player.count + " lá bài" +
+        (player.id === myId ? " · BẠN" : "");
+
+      seat.classList.toggle(
+        "active",
+        player.id === roomState.currentPlayerId
+      );
+    } else {
+      seat.textContent = "Đang chờ";
+      seat.classList.remove("active");
+    }
+  }
+
+  document.getElementById("message").textContent =
+    roomState.winner
+      ? "🏆 " + roomState.winner + " đã chiến thắng!"
+      : roomState.message || "";
+
+  const played = roomState.lastCards || [];
+
+  document.getElementById("tableCards").innerHTML =
+    played.map(card =>
+      '<div class="tablecard ' +
+      (isRed(card) ? "red" : "") +
+      '">' + escapeText(card) + "</div>"
+    ).join("");
+
+  renderHand();
+}
+
+function isRed(card) {
+  return card.endsWith("♥") || card.endsWith("♦");
+}
+
+function renderHand() {
+  const hand = document.getElementById("hand");
+  hand.innerHTML = "";
+
+  myHand.forEach(card => {
+    const button = document.createElement("button");
+    button.className =
+      "card " +
+      (isRed(card) ? "red" : "") +
+      (selected.includes(card) ? " selected" : "");
+
+    button.textContent = card;
+
+    button.onclick = () => {
+      if (selected.includes(card)) {
+        selected = selected.filter(c => c !== card);
+      } else {
+        selected.push(card);
+      }
+      renderHand();
+    };
+
+    hand.appendChild(button);
+  });
+}
+
+function playSound() {
+  try {
+    const AudioContextClass =
+      window.AudioContext || window.webkitAudioContext;
+
+    const context = new AudioContextClass();
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+
+    oscillator.type = "sawtooth";
+    oscillator.frequency.setValueAtTime(750, context.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(
+      120, context.currentTime + 0.16
+    );
+
+    gain.gain.setValueAtTime(0.10, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(
+      0.001, context.currentTime + 0.18
+    );
+
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.19);
+
+    setTimeout(() => context.close(), 300);
+  } catch (error) {
+    // Trình duyệt có thể chặn âm thanh.
+  }
+}
+
+function playCards() {
+  if (!roomState || roomState.currentPlayerId !== myId) {
+    alert("Chưa đến lượt bạn!");
+    return;
+  }
+
+  if (!selected.length) {
+    alert("Hãy chạm chọn lá bài muốn đánh!");
+    return;
+  }
+
+  playSound();
+
+  socket.emit("playCards", {
+    code: roomCode,
+    cards: selected.slice()
+  });
+}
+
+function passTurn() {
+  if (!roomState || roomState.currentPlayerId !== myId) {
+    alert("Chưa đến lượt bạn!");
+    return;
+  }
+
+  socket.emit("passTurn", {code: roomCode});
 }
 </script>
+
 </body>
 </html>
