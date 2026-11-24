@@ -44,18 +44,59 @@ button{width:100%;padding:14px;margin:7px 0;border:0;border-radius:9px;backgroun
 </main>
 
 <script>
-function createRoom(){
- document.getElementById("status").textContent=
- "Giao diện đã sẵn sàng. Đang chờ máy chủ online.";
+const socket = io();
+
+socket.on("connect", function() {
+    document.getElementById("status").textContent = "Đã kết nối máy chủ!";
+});
+
+socket.on("connect_error", function() {
+    document.getElementById("status").textContent = "Không kết nối được máy chủ!";
+});
+
+socket.on("roomCreated", function(data) {
+    document.getElementById("code").textContent =
+        "Mã phòng: " + data.code;
+});
+
+socket.on("joinedRoom", function(data) {
+    document.getElementById("code").textContent =
+        "Đã vào phòng: " + data.code;
+});
+
+socket.on("roomUpdate", function(data) {
+    document.getElementById("players").textContent =
+        "Người chơi: " +
+        data.players.map(function(player) {
+            return player.name;
+        }).join(", ");
+});
+
+socket.on("errorMessage", function(message) {
+    alert(message);
+});
+
+function createRoom() {
+    var name = document.getElementById("name").value.trim();
+
+    socket.emit("createRoom", {
+        name: name || "Người chơi"
+    });
 }
-function joinRoom(){
- let code=document.getElementById("room").value.trim().toUpperCase();
- if(code.length!==6){
-  alert("Mã phòng phải có 6 ký tự!");
-  return;
- }
- document.getElementById("status").textContent=
- "Đã nhập mã phòng "+code+". Máy chủ sẽ được kết nối ở bước tiếp theo.";
+
+function joinRoom() {
+    var name = document.getElementById("name").value.trim();
+    var code = document.getElementById("room").value.trim().toUpperCase();
+
+    if (code.length !== 6) {
+        alert("Mã phòng phải có 6 ký tự!");
+        return;
+    }
+
+    socket.emit("joinRoom", {
+        name: name || "Người chơi",
+        code: code
+    });
 }
 </script>
 </body>
