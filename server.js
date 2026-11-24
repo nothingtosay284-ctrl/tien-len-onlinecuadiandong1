@@ -31,9 +31,7 @@ function makeDeck() {
   const deck = [];
 
   for (const suit of SUITS) {
-    for (const value of RANKS) {
-      deck.push(value + suit);
-    }
+    for (const value of RANKS) deck.push(value + suit);
   }
 
   for (let i = deck.length - 1; i > 0; i--) {
@@ -57,21 +55,24 @@ function getCombo(cards) {
   const unique = Object.keys(counts).map(Number).sort((a, b) => a - b);
   const highest = Math.max(...values);
 
-  if (cards.length === 1) {
-    return { type: "single", size: 1, power: highest };
-  }
+  const combo = {
+    size: cards.length,
+    power: highest,
+    suitPower: Math.max(
+      ...cards.filter(c => rank(c) === highest).map(suitValue)
+    )
+  };
 
-  if (cards.length === 2 && unique.length === 1) {
-    return { type: "pair", size: 2, power: highest };
-  }
+  if (cards.length === 1) return { ...combo, type: "single" };
 
-  if (cards.length === 3 && unique.length === 1) {
-    return { type: "triple", size: 3, power: highest };
-  }
+  if (cards.length === 2 && unique.length === 1)
+    return { ...combo, type: "pair" };
 
-  if (cards.length === 4 && unique.length === 1) {
-    return { type: "four", size: 4, power: highest };
-  }
+  if (cards.length === 3 && unique.length === 1)
+    return { ...combo, type: "triple" };
+
+  if (cards.length === 4 && unique.length === 1)
+    return { ...combo, type: "four" };
 
   if (
     cards.length >= 3 &&
@@ -79,7 +80,25 @@ function getCombo(cards) {
     highest < 15 &&
     unique.every((v, i) => i === 0 || v === unique[i - 1] + 1)
   ) {
-    return { type: "straight", size: cards.length, power: highest };
+    return { ...combo, type: "straight" };
+  }
+
+  if (
+    cards.length === 6 &&
+    unique.length === 3 &&
+    unique.every(v => counts[v] === 2) &&
+    unique.every((v, i) => i === 0 || v === unique[i - 1] + 1)
+  ) {
+    return { ...combo, type: "threePairs" };
+  }
+
+  if (
+    cards.length === 8 &&
+    unique.length === 4 &&
+    unique.every(v => counts[v] === 2) &&
+    unique.every((v, i) => i === 0 || v === unique[i - 1] + 1)
+  ) {
+    return { ...combo, type: "fourPairs" };
   }
 
   return null;
@@ -88,14 +107,38 @@ function getCombo(cards) {
 function beats(next, previous) {
   if (!previous) return true;
 
+  const singleTwo =
+    previous.type === "single" && previous.power === 15;
+
+  const pairTwo =
+    previous.type === "pair" && previous.power === 15;
+
+  // Bốn đôi thông chặt heo, đôi heo, 3 đôi thông và tứ quý.
+  if (
+    next.type === "fourPairs" &&
+    ["single", "pair", "threePairs", "four"].includes(previous.type)
+  ) {
+    if (singleTwo || pairTwo ||
+        previous.type === "threePairs" ||
+        previous.type === "four") {
+      return true;
+    }
+  }
+
+  // Tứ quý chặt heo, đôi heo và 3 đôi thông.
   if (
     next.type === "four" &&
-    previous.type === "single" &&
-    previous.power === 15
+    (singleTwo || pairTwo || previous.type === "threePairs")
   ) {
     return true;
   }
 
+  // 3 đôi thông chặt một con heo.
+  if (next.type === "threePairs" && singleTwo) {
+    return true;
+  }
+
+  // Hàng cùng loại phải mạnh hơn hàng trước.
   if (
     next.type !== previous.type ||
     next.size !== previous.size
@@ -118,8 +161,41 @@ function playerSignature(room) {
   return room.players.map(p => p.id).sort().join("|");
 }
 
-function rankingText(room) {
+function findWhiteWin(player, firstRound) {
+  const cards = player.hand;
+  const counts = {};
+
+  cards.forEach(card => {
+    const value = rank(card);
+    counts[value] = (counts[value] || 0) + 1;
+  });
+
+  const values = Object.keys(counts).map(Number).sort((a, b) => a - b);
+
+  // Bốn con heo.
+  if (counts[15] === 4) return "Tứ quý 2";
+
+  // Sáu đôi bất kỳ, không cần liên tiếp.
+  if (values.filter(v => counts[v] >= 2).length >= 6)
+    return "6 đôi thông thường";
+
+  // Sảnh đủ 12 lá từ 3 đến A.
+  const straight12 = RANKS.slice(0, 12).every(value =>
+    cards.some(card => card.startsWith(value))
+  );
+
+  if (straight12) return "Sảnh 3 đến A";
+
+  // Ván đầu: tứ quý 3.
+  if (firstRound && counts[3] === 4)
+    return "Tứ quý 3 ván đầu";
+
+  return null;
+}
+
+function resultRows(room) {
   const total = room.roundPlayerIds.length;
+
   const labels = total === 2
     ? ["Thắng", "Thua"]
     : ["Nhất", "Nhì", "Ba", "Tư"];
@@ -127,14 +203,52 @@ function rankingText(room) {
   return room.rankings.map((id, index) => {
     const player = room.players.find(p => p.id === id);
 
-    if (!player) return null;
-
-    return labels[index] + ": " + player.name;
-  }).filter(Boolean).join("  |  ");
+    return {
+      rank: labels[index] || "Hạng " + (index + 1),
+      name: player ? player.name : "Người chơi đã rời phòng"
+    };
+  });
 }
 
-function publicState(room) {
-  return {
+function finishRound(room) {
+  const remaining = activePlayers(room);
+
+  if (remaining.length === 1) {
+    room.rankings.push(remaining[0].id);
+  }
+
+  if (remaining.length > 1) return false;
+
+  room.winnerId = room.rankings[0] || null;
+  room.results = resultRows(room);
+
+  room.winner = room.results
+    .map(item => item.rank + ": " + item.name)
+    .join(" | ");
+
+  room.message = "🏆 Ván đấu đã kết thúc!";
+
+  return true;
+}
+
+function finishWhiteWin(room, player, reason) {
+  room.rankings = [player.id];
+  room.winnerId = player.id;
+  room.results = [{
+    rank: "TỚI TRẮNG",
+    name: player.name
+  }];
+
+  room.winner = "TỚI TRẮNG: " + player.name;
+  room.started = true;
+  room.currentPlayerId = null;
+  room.lastCards = [];
+  room.lastPlay = null;
+  room.message = "🏆 " + player.name + " TỚI TRẮNG! (" + reason + ")";
+}
+
+function sendState(room) {
+  io.to(room.code).emit("roomState", {
     code: room.code,
     started: room.started,
     hostId: room.host,
@@ -144,16 +258,14 @@ function publicState(room) {
     lastPlayerName: room.lastPlayerName || "",
     message: room.message,
     winner: room.winner,
+    winnerId: room.winnerId,
+    results: room.results || [],
     players: room.players.map(p => ({
       id: p.id,
       name: p.name,
       count: p.hand.length
     }))
-  };
-}
-
-function sendState(room) {
-  io.to(room.code).emit("roomState", publicState(room));
+  });
 
   room.players.forEach(player => {
     io.to(player.id).emit("myHand", player.hand);
@@ -171,6 +283,27 @@ function nextTurn(room, playerId) {
     active[(index + 1 + active.length) % active.length].id;
 }
 
+function leadAfter(room, playerId) {
+  const active = activePlayers(room);
+
+  if (!active.length) return;
+
+  const oldIndex = room.players.findIndex(p => p.id === playerId);
+
+  for (let step = 1; step <= room.players.length; step++) {
+    const candidate = room.players[
+      (oldIndex + step + room.players.length) % room.players.length
+    ];
+
+    if (candidate && candidate.hand.length > 0) {
+      room.currentPlayerId = candidate.id;
+      return;
+    }
+  }
+
+  room.currentPlayerId = active[0].id;
+}
+
 function makeRoomCode() {
   let code;
 
@@ -181,27 +314,6 @@ function makeRoomCode() {
   return code;
 }
 
-function finishRound(room) {
-  const remaining = activePlayers(room);
-
-  if (remaining.length === 1) {
-    room.rankings.push(remaining[0].id);
-  }
-
-  if (remaining.length > 1) return false;
-
-  room.started = true;
-  room.currentPlayerId = null;
-  room.winnerId = room.rankings[0] || null;
-
-  const result = rankingText(room);
-
-  room.winner = result || "Ván đấu đã kết thúc";
-  room.message = "🏆 KẾT QUẢ VÁN ĐẤU: " + room.winner;
-
-  return true;
-}
-
 function dealRound(room, preferredPlayerId) {
   const deck = makeDeck();
 
@@ -209,31 +321,41 @@ function dealRound(room, preferredPlayerId) {
     player.hand = sortCards(deck.splice(0, 13));
   });
 
-  let firstPlayer = null;
-
-  if (preferredPlayerId) {
-    firstPlayer = room.players.find(p => p.id === preferredPlayerId);
-  }
-
-  if (!firstPlayer) {
-    firstPlayer = room.players.find(p =>
-      p.hand.includes("3♠")
-    );
-  }
-
-  room.started = true;
-  room.currentPlayerId = firstPlayer.id;
+  room.roundNumber++;
+  room.rankings = [];
+  room.results = [];
+  room.winner = null;
+  room.winnerId = null;
   room.lastPlayerId = null;
   room.lastPlayerName = "";
   room.lastCards = [];
   room.lastPlay = null;
   room.passes = 0;
-  room.mustPlayThree = !preferredPlayerId;
-  room.winner = null;
-  room.winnerId = null;
-  room.rankings = [];
   room.roundPlayerIds = room.players.map(p => p.id);
   room.roundSignature = playerSignature(room);
+
+  // Tới trắng được kiểm tra ngay sau khi chia bài.
+  for (const player of room.players) {
+    const reason = findWhiteWin(player, room.roundNumber === 1);
+
+    if (reason) {
+      finishWhiteWin(room, player, reason);
+      sendState(room);
+      return;
+    }
+  }
+
+  let firstPlayer = preferredPlayerId
+    ? room.players.find(p => p.id === preferredPlayerId)
+    : null;
+
+  if (!firstPlayer) {
+    firstPlayer = room.players.find(p => p.hand.includes("3♠"));
+  }
+
+  room.started = true;
+  room.currentPlayerId = firstPlayer.id;
+  room.mustPlayThree = !preferredPlayerId;
 
   room.message = preferredPlayerId
     ? "Ván mới! Người thắng ván trước được đi trước."
@@ -243,7 +365,6 @@ function dealRound(room, preferredPlayerId) {
 }
 
 io.on("connection", socket => {
-
   socket.on("createRoom", data => {
     data = data || {};
 
@@ -269,6 +390,8 @@ io.on("connection", socket => {
       winner: null,
       winnerId: null,
       rankings: [],
+      results: [],
+      roundNumber: 0,
       roundPlayerIds: [],
       roundSignature: ""
     };
@@ -325,11 +448,7 @@ io.on("connection", socket => {
     const samePlayers =
       room.roundSignature === playerSignature(room);
 
-    const firstPlayerId = samePlayers
-      ? room.winnerId
-      : null;
-
-    dealRound(room, firstPlayerId);
+    dealRound(room, samePlayers ? room.winnerId : null);
   });
 
   socket.on("playCards", data => {
@@ -343,23 +462,18 @@ io.on("connection", socket => {
     }
 
     const player = room.players.find(p => p.id === socket.id);
-
     if (!player) return;
 
     const cards = data.cards;
 
-    if (!Array.isArray(cards) || cards.length === 0 || cards.length > 13) {
+    if (!Array.isArray(cards) || !cards.length || cards.length > 13) {
       socket.emit("errorMessage", "Hãy chọn bài hợp lệ!");
       return;
     }
 
-    if (new Set(cards).size !== cards.length) {
-      socket.emit("errorMessage", "Bạn đã chọn bài trùng!");
-      return;
-    }
-
-    if (!cards.every(card => player.hand.includes(card))) {
-      socket.emit("errorMessage", "Bạn không có lá bài đó!");
+    if (new Set(cards).size !== cards.length ||
+        !cards.every(card => player.hand.includes(card))) {
+      socket.emit("errorMessage", "Lá bài được chọn không hợp lệ!");
       return;
     }
 
@@ -369,8 +483,6 @@ io.on("connection", socket => {
       socket.emit("errorMessage", "Bộ bài không hợp lệ!");
       return;
     }
-
-    combo.suitPower = Math.max(...cards.map(suitValue));
 
     if (room.mustPlayThree && !cards.includes("3♠")) {
       socket.emit("errorMessage", "Lượt đầu tiên phải có lá 3♠!");
@@ -392,6 +504,7 @@ io.on("connection", socket => {
     room.lastPlayerName = player.name;
     room.passes = 0;
     room.mustPlayThree = false;
+
     room.message = player.name + " đã đánh " + cards.join(" ");
 
     if (player.hand.length === 0) {
@@ -425,19 +538,31 @@ io.on("connection", socket => {
     }
 
     const player = room.players.find(p => p.id === socket.id);
-
     if (!player) return;
 
     room.passes++;
     room.message = player.name + " đã bỏ lượt.";
 
     const active = activePlayers(room);
+    const lastPlayerStillActive =
+      active.some(p => p.id === room.lastPlayerId);
 
-    if (room.passes >= active.length - 1) {
-      room.currentPlayerId = room.lastPlayerId;
+    const neededPasses = active.length -
+      (lastPlayerStillActive ? 1 : 0);
+
+    if (room.passes >= neededPasses) {
+      const oldLastPlayer = room.lastPlayerId;
+
       room.lastPlay = null;
       room.lastCards = [];
       room.passes = 0;
+
+      if (lastPlayerStillActive) {
+        room.currentPlayerId = oldLastPlayer;
+      } else {
+        leadAfter(room, oldLastPlayer);
+      }
+
       room.message = room.lastPlayerName + " được đánh vòng mới.";
     } else {
       nextTurn(room, socket.id);
