@@ -19,27 +19,31 @@ button{cursor:pointer;border:1px solid #f1d58c;border-radius:8px;padding:12px 15
 button:active{transform:scale(.97)}
 button:disabled{opacity:.45}
 #roomInfo{text-align:center;font:14px Arial;color:#f2d99b;margin:12px}
-#table{display:none;position:relative;margin:12px auto;width:calc(100% - 14px);max-width:900px;height:min(72vh,590px);min-height:430px;border:13px solid #51331e;border-radius:48%;background:radial-gradient(ellipse at center,#19845a 0%,#08603e 58%,#03432c 100%);box-shadow:0 0 0 3px #c6a04e,0 0 0 7px #352015,0 16px 35px #000,inset 0 0 35px #002b19}
+#table{display:none;position:relative;margin:12px auto;width:calc(100% - 14px);max-width:900px;height:min(72vh,590px);min-height:430px;border:13px solid #51331e;border-radius:48%;background:radial-gradient(ellipse at center,#19845a 0%,#08603e 58%,#03432c 100%);box-shadow:0 0 0 3px #c6a04e,0 0 0 7px #352015,0 16px 35px #000,inset 0 0 35px #002b19;overflow:hidden}
 #table:before{content:"";position:absolute;inset:12px;border:2px solid #c7a65d;border-radius:48%;pointer-events:none}
-#table:after{content:"♠  ROYAL CARD CLUB  ♥";position:absolute;left:50%;top:20%;transform:translateX(-50%);color:#d9c080;opacity:.22;font-size:clamp(12px,2vw,19px);letter-spacing:3px;white-space:nowrap;pointer-events:none}
+#table:after{content:"♠ ROYAL CARD CLUB ♥";position:absolute;left:50%;top:20%;transform:translateX(-50%);color:#d9c080;opacity:.22;font-size:clamp(12px,2vw,19px);letter-spacing:3px;white-space:nowrap;pointer-events:none}
 .seat{position:absolute;z-index:2;min-width:105px;text-align:center;background:linear-gradient(145deg,#211b14ed,#090d0bed);border:1px solid #c19b4c;border-radius:12px;padding:8px 10px;font:12px Arial;color:#f6e8c7;box-shadow:0 4px 10px #0008}
 .seat strong{display:block;color:#f1d38c;margin-bottom:5px;font-size:13px}
-.seat.active{outline:3px solid #f4d47d;box-shadow:0 0 18px #e5c46b}
+.seat.active{outline:3px solid #f4d47d;box-shadow:0 0 18px #e5c46b;animation:glow 1s infinite alternate}
+@keyframes glow{from{box-shadow:0 0 8px #e5c46b}to{box-shadow:0 0 23px #ffe6a0}}
 #seat0{bottom:12px;left:50%;transform:translateX(-50%)}
 #seat1{left:12px;top:50%;transform:translateY(-50%)}
 #seat2{top:12px;left:50%;transform:translateX(-50%)}
 #seat3{right:12px;top:50%;transform:translateY(-50%)}
 #middle{position:absolute;z-index:1;top:50%;left:50%;transform:translate(-50%,-50%);width:65%;text-align:center}
 #tableCards{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:5px;min-height:65px;margin-top:8px}
-.tablecard{background:linear-gradient(145deg,#fff,#e6e0d1);color:#17251d;border:1px solid #c6b78f;border-radius:6px;padding:10px 7px;font:bold 18px Arial;box-shadow:0 4px 9px #001;animation:cardIn .22s ease-out}
+.tablecard{background:linear-gradient(145deg,#fff,#e6e0d1);color:#17251d;border:1px solid #c6b78f;border-radius:6px;padding:10px 7px;font:bold 18px Arial;box-shadow:0 4px 9px #001;animation:cardIn .3s ease-out}
 .red{color:#c52222!important}
-@keyframes cardIn{from{opacity:0;transform:translateY(-18px) scale(.8)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes cardIn{from{opacity:0;transform:translateY(-30px) rotate(-12deg) scale(.7)}to{opacity:1;transform:translateY(0) rotate(0) scale(1)}}
+#tableCards.chop{animation:chop .55s ease}
+@keyframes chop{0%{filter:brightness(1)}30%{filter:brightness(2);transform:scale(1.13)}100%{filter:brightness(1);transform:scale(1)}}
 #message{font:13px Arial;color:#ffe7a5;margin:10px 0;min-height:30px;line-height:1.5}
 #handArea{display:none;max-width:900px;margin:15px auto;padding:10px 5px 20px;text-align:center}
 .handTitle{color:#e8c878;font-size:14px;letter-spacing:2px;margin-bottom:14px}
 #hand{display:flex;justify-content:center;align-items:flex-end;flex-wrap:wrap;gap:5px;min-height:75px}
-.card{background:linear-gradient(145deg,#fff,#e9e4d8);color:#17251d;border:2px solid #c9b88c;border-radius:8px;width:43px;height:66px;padding:4px 2px;font:bold 15px Arial;box-shadow:0 4px 8px #0009;transition:transform .15s}
-.card.selected{transform:translateY(-13px);border:3px solid #e4b84d;background:#fff5d8}
+.card{background:linear-gradient(145deg,#fff,#e9e4d8);color:#17251d;border:2px solid #c9b88c;border-radius:8px;width:43px;height:66px;padding:4px 2px;font:bold 15px Arial;box-shadow:0 4px 8px #0009;transition:transform .15s;animation:dealCard .45s both}
+@keyframes dealCard{from{opacity:0;transform:translateY(-90px) rotate(15deg) scale(.7)}to{opacity:1;transform:translateY(0) rotate(0) scale(1)}}
+.card.selected{transform:translateY(-13px);border:3px solid #e4b84d;background:#fff5d8;animation:none}
 .actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:14px auto}
 .actions button{min-width:130px}
 #startArea,#nextArea{display:none}
@@ -49,9 +53,9 @@ button:disabled{opacity:.45}
 #resultArea h2{margin:0 0 14px;color:#f3d58b;letter-spacing:2px}
 .resultRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;margin:7px 0;border:1px solid #806638;border-radius:8px;background:#17150f;font:14px Arial}
 .resultRow:first-of-type{background:linear-gradient(100deg,#57431c,#241b0d);border-color:#e5c46b;color:#ffe5a0}
-.resultRank{font-weight:bold;min-width:65px;text-align:left}
+.resultRank{font-weight:bold;min-width:85px;text-align:left}
 .resultName{overflow-wrap:anywhere;text-align:right}
-#startArea button{min-width:200px}
+#resultArea .whiteWin{color:#ffe58d;font-size:20px;text-align:center;margin:12px}
 .smallNote{text-align:center;color:#a99b7e;font:11px Arial;padding:10px}
 @media(max-width:500px){
 #table{height:440px;min-height:440px;border-width:9px}
@@ -128,6 +132,7 @@ let selected = [];
 let roomState = null;
 let previousPlay = "";
 let audioContext = null;
+let dealAnimation = false;
 
 function unlockAudio() {
   try {
@@ -240,6 +245,7 @@ socket.on("roomState", state => {
   if (state.started && !state.winner) {
     if ((!oldStarted || oldWinner) && state.players.length) {
       shuffleSound();
+      dealAnimation = true;
     } else if (newPlay && newPlay !== previousPlay) {
       cardSound();
     }
@@ -258,15 +264,12 @@ function getName() {
 
 function createRoom() {
   unlockAudio();
-
   if (!socket.connected) return alert("Máy chủ chưa kết nối!");
-
   socket.emit("createRoom", {name: getName()});
 }
 
 function joinRoom() {
   unlockAudio();
-
   if (!socket.connected) return alert("Máy chủ chưa kết nối!");
 
   const code = document.getElementById("roomInput")
@@ -313,19 +316,54 @@ function renderResults() {
 
   area.style.display = "block";
 
-  const resultText = String(roomState.winner);
-  const entries = resultText.split("|").map(item => item.trim());
+  const results = roomState.results || [];
 
-  list.innerHTML = entries.map(entry => {
-    const parts = entry.split(":");
-    const rank = parts.shift() || "";
-    const name = parts.join(":").trim();
+  if (results.length) {
+    list.innerHTML = results.map((item, index) => {
+      return '<div class="resultRow">' +
+        '<span class="resultRank">' + escapeText(item.rank) + '</span>' +
+        '<span class="resultName">' + escapeText(item.name) + '</span>' +
+        '</div>';
+    }).join("");
+  } else {
+    list.innerHTML = '<div class="whiteWin">' +
+      escapeText(roomState.winner) + '</div>';
+  }
 
-    return '<div class="resultRow">' +
-      '<span class="resultRank">' + escapeText(rank) + '</span>' +
-      '<span class="resultName">' + escapeText(name) + '</span>' +
-      '</div>';
-  }).join("");
+  if (String(roomState.winner).includes("TỚI TRẮNG")) {
+    list.insertAdjacentHTML("afterbegin",
+      '<div class="whiteWin">✨ TỚI TRẮNG ✨</div>');
+  }
+}
+
+function isSpecialCombo(cards) {
+  if (!cards || !cards.length) return false;
+
+  if (cards.length === 4 &&
+      cards.every(c => c.slice(0, -1) === cards[0].slice(0, -1))) {
+    return true;
+  }
+
+  if (cards.length === 6 || cards.length === 8) {
+    const counts = {};
+
+    cards.forEach(card => {
+      const value = card.slice(0, -1);
+      counts[value] = (counts[value] || 0) + 1;
+    });
+
+    const values = Object.keys(counts).sort((a, b) => {
+      const order = ["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
+      return order.indexOf(a) - order.indexOf(b);
+    });
+
+    if (values.length === cards.length / 2 &&
+        values.every(v => counts[v] === 2)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function renderState() {
@@ -372,18 +410,23 @@ function renderState() {
   }
 
   document.getElementById("message").textContent =
-    roomState.winner
-      ? "Ván đấu đã kết thúc! Xem bảng xếp hạng bên dưới."
-      : roomState.message || "";
+    roomState.message || "";
 
   const played = roomState.lastCards || [];
+  const tableCards = document.getElementById("tableCards");
 
-  document.getElementById("tableCards").innerHTML =
-    played.map(card =>
-      '<div class="tablecard ' +
-      (isRed(card) ? "red" : "") +
-      '">' + escapeText(card) + "</div>"
-    ).join("");
+  tableCards.innerHTML = played.map(card =>
+    '<div class="tablecard ' +
+    (isRed(card) ? "red" : "") +
+    '">' + escapeText(card) + "</div>"
+  ).join("");
+
+  tableCards.classList.remove("chop");
+
+  if (isSpecialCombo(played)) {
+    void tableCards.offsetWidth;
+    tableCards.classList.add("chop");
+  }
 
   renderResults();
   renderHand();
@@ -393,15 +436,21 @@ function renderHand() {
   const hand = document.getElementById("hand");
   hand.innerHTML = "";
 
-  myHand.forEach(card => {
+  myHand.forEach((card, index) => {
     const button = document.createElement("button");
 
     button.className =
       "card " +
-      (isRed(card) ? "red" : "") +
-      (selected.includes(card) ? " selected" : "");
+      (isRed(card) ? "red " : "") +
+      (selected.includes(card) ? "selected" : "");
 
     button.textContent = card;
+
+    if (dealAnimation) {
+      button.style.animationDelay = (index * 0.055) + "s";
+    } else {
+      button.style.animation = "none";
+    }
 
     button.onclick = () => {
       unlockAudio();
@@ -417,6 +466,8 @@ function renderHand() {
 
     hand.appendChild(button);
   });
+
+  dealAnimation = false;
 }
 
 function playCards() {
