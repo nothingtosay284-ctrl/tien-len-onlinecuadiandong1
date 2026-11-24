@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tiến Lên Online</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101827;color:white;font-family:Arial}
+main{max-width:600px;margin:auto;padding:22px}
+h1{text-align:center;color:#55e6a5}
+.card{background:#1e2b40;padding:20px;border-radius:16px;margin:18px 0}
+input{width:100%;padding:14px;margin:8px 0;border:0;border-radius:8px;font-size:16px}
+button{width:100%;padding:14px;margin:7px 0;border:0;border-radius:9px;background:#20c987;font-weight:bold;font-size:16px}
+.note{text-align:center;color:#b7c5d8}
+</style>
+</head>
+<body>
+<main>
+<h1>♠ TIẾN LÊN ONLINE ♥</h1>
+<p class="note">Chơi cùng bạn bè trên nhiều điện thoại</p>
+
+<div class="card">
+<h3>👤 Tên người chơi</h3>
+<input id="name" placeholder="Nhập tên của bạn">
+
+<h3>🏠 Tạo phòng</h3>
+<button onclick="createRoom()">Tạo phòng mới</button>
+
+<h3>🔑 Tham gia phòng</h3>
+<input id="room" placeholder="Nhập mã phòng 6 ký tự">
+<button onclick="joinRoom()">Tham gia</button>
+</div>
+
+<div class="card">
+<h3>🎮 Phòng chơi</h3>
+<p id="status">Chưa kết nối máy chủ</p>
+<p id="code">Mã phòng: Chưa có</p>
+<div id="players">Chưa có người chơi</div>
+</div>
+
+<p class="note">2–4 người chơi | Không cá cược | Không tiền thật</p>
+</main>
+
+<script>
+function createRoom(){
+ document.getElementById("status").textContent=
+ "Giao diện đã sẵn sàng. Đang chờ máy chủ online.";
+}
+function joinRoom(){
+ let code=document.getElementById("room").value.trim().toUpperCase();
+ if(code.length!==6){
+  alert("Mã phòng phải có 6 ký tự!");
+  return;
+ }
+ document.getElementById("status").textContent=
+ "Đã nhập mã phòng "+code+". Máy chủ sẽ được kết nối ở bước tiếp theo.";
+}
+</script>
+</body>
+</html>
